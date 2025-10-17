@@ -31,7 +31,8 @@ models/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-notebooks/
+notebooks/*.ipynb
+!notebooks/PredictingDeltas.ipynb
 
 # pytest
 .pytest_cache/
