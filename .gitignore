@@ -11,7 +11,9 @@ ENV/
 
 # Data and models
 data/
+!src/data/
 models/
+!src/models/
 *.pkl
 *.joblib
 *.h5
