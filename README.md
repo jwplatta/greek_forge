@@ -85,4 +85,4 @@ See `doc/project_plan.md` for detailed project planning and development workflow
 
 ## License
 
-TBD
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
