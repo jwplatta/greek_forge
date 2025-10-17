@@ -1,10 +1,10 @@
 WITH query2 AS (
   SELECT
     (expiration_date::date - valid_time::date) AS dte,
-    strike / underlying_price as moneyness,
-    ask - bid as spread,
-    ask,
-    bid,
+    CASE
+      WHEN contract_type = 'CALL' THEN underlying_price / strike
+      WHEN contract_type = 'PUT' THEN strike / underlying_price
+    END as moneyness,
     mark,
     underlying_price,
     delta,
@@ -14,8 +14,11 @@ WITH query2 AS (
   FROM option_chain_history
   WHERE sample = true
   AND root_symbol = 'SPXW'
-  AND strike / underlying_price >= 0.99
-  AND contract_type = 'CALL'
+  AND contract_type = %(contract_type)s
+  AND (
+    (contract_type = 'CALL' AND underlying_price / strike <= 1.01) OR
+    (contract_type = 'PUT' AND strike / underlying_price <= 1.01)
+  )
   AND (expiration_date::date - valid_time::date) <= 9
 )
 

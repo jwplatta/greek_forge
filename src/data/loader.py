@@ -1,38 +1,42 @@
 """Data loading utilities for fetching training data from PostgreSQL."""
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 import pandas as pd
 
 from src.utils.db import get_db_cursor
 
 
-def load_call_samples_query() -> str:
+def load_option_samples_query() -> str:
     """
-    Load the call samples SQL query from file.
+    Load the option samples SQL query from file.
 
     Returns:
-        str: SQL query string
+        str: SQL query string (parameterized with contract_type)
     """
-    query_path = Path(__file__).parent / 'call_samples.sql'
+    query_path = Path(__file__).parent / 'option_samples.sql'
     with open(query_path, 'r') as f:
         return f.read()
 
 
-def fetch_call_samples(limit: Optional[int] = None) -> pd.DataFrame:
+def fetch_option_samples(
+    contract_type: Literal['CALL', 'PUT'] = 'CALL',
+    limit: Optional[int] = None
+) -> pd.DataFrame:
     """
-    Fetch call option samples from the database.
+    Fetch option samples from the database.
 
-    This loads SPXW call options with associated volatility indicators (VIX, VIX9D, VVIX, SKEW).
+    This loads SPXW options with associated volatility indicators (VIX, VIX9D, VVIX, SKEW).
     The query filters for:
     - Sample data (sample = true)
     - SPXW root symbol
     - Moneyness >= 0.99 (near or at-the-money)
-    - Call options only
+    - Specified contract type (CALL or PUT)
     - DTE <= 9 days
 
     Args:
+        contract_type: 'CALL' or 'PUT' (default: 'CALL')
         limit: Optional limit on number of rows to fetch
 
     Returns:
@@ -44,17 +48,17 @@ def fetch_call_samples(limit: Optional[int] = None) -> pd.DataFrame:
             - underlying_price: underlying asset price
             - delta: option delta (target variable)
             - strike: option strike price
-            - contract_type: 'CALL'
+            - contract_type: 'CALL' or 'PUT'
             - valid_time: timestamp
             - vix, vix9d, vvix, skew: volatility indicators
     """
-    query = load_call_samples_query()
+    query = load_option_samples_query()
 
     if limit:
         query += f"\nLIMIT {limit}"
 
     with get_db_cursor() as cur:
-        cur.execute(query)
+        cur.execute(query, {'contract_type': contract_type})
         results = cur.fetchall()
 
     df = pd.DataFrame(results)
@@ -64,6 +68,36 @@ def fetch_call_samples(limit: Optional[int] = None) -> pd.DataFrame:
         df['valid_time'] = pd.to_datetime(df['valid_time'])
 
     return df
+
+
+def fetch_call_samples(limit: Optional[int] = None) -> pd.DataFrame:
+    """
+    Fetch call option samples from the database.
+
+    Convenience wrapper around fetch_option_samples for call options.
+
+    Args:
+        limit: Optional limit on number of rows to fetch
+
+    Returns:
+        pd.DataFrame: DataFrame with call option samples
+    """
+    return fetch_option_samples(contract_type='CALL', limit=limit)
+
+
+def fetch_put_samples(limit: Optional[int] = None) -> pd.DataFrame:
+    """
+    Fetch put option samples from the database.
+
+    Convenience wrapper around fetch_option_samples for put options.
+
+    Args:
+        limit: Optional limit on number of rows to fetch
+
+    Returns:
+        pd.DataFrame: DataFrame with put option samples
+    """
+    return fetch_option_samples(contract_type='PUT', limit=limit)
 
 
 def prepare_features_target(
@@ -103,12 +137,20 @@ def prepare_features_target(
 if __name__ == '__main__':
     # Example usage
     print("Fetching call samples...")
-    df = fetch_call_samples(limit=10)
-    print(f"\nLoaded {len(df)} samples")
-    print(f"\nColumns: {df.columns.tolist()}")
-    print(f"\nFirst few rows:\n{df.head()}")
+    df_calls = fetch_call_samples(limit=5)
+    print(f"\nLoaded {len(df_calls)} call samples")
+    print(f"\nColumns: {df_calls.columns.tolist()}")
+    print(f"\nFirst few rows:\n{df_calls.head()}")
 
-    X, y = prepare_features_target(df)
+    print("\n" + "="*60)
+    print("Fetching put samples...")
+    df_puts = fetch_put_samples(limit=5)
+    print(f"\nLoaded {len(df_puts)} put samples")
+    print(f"\nFirst few rows:\n{df_puts.head()}")
+
+    print("\n" + "="*60)
+    print("Preparing features and target...")
+    X, y = prepare_features_target(df_calls)
     print(f"\nFeatures shape: {X.shape}")
     print(f"Target shape: {y.shape}")
     print(f"\nFeature columns: {X.columns.tolist()}")
