@@ -18,3 +18,8 @@ dev = [
     "pytest>=7.4.0",
     "jupyter>=1.0.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.1",
+]
