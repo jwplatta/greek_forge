@@ -1,4 +1,4 @@
-WITH query2 AS (
+WITH samples AS (
   SELECT
     (expiration_date::date - valid_time::date) AS dte,
     CASE
@@ -23,17 +23,17 @@ WITH query2 AS (
 )
 
 SELECT
-  q2.*,
+  samples.*,
   vix.close AS vix,
   vix9d.close AS vix9d,
   vvix.close AS vvix,
   skew.close AS skew
-FROM query2 q2
+FROM samples
 LEFT JOIN LATERAL (
   SELECT close, valid_time
   FROM price_history
   WHERE symbol = '$VIX'
-  AND valid_time <= q2.valid_time
+  AND valid_time <= samples.valid_time
   ORDER BY valid_time DESC
   LIMIT 1
 ) vix ON true
@@ -41,7 +41,7 @@ LEFT JOIN LATERAL (
   SELECT close, valid_time
   FROM price_history
   WHERE symbol = '$VIX9D'
-  AND valid_time <= q2.valid_time
+  AND valid_time <= samples.valid_time
   ORDER BY valid_time DESC
   LIMIT 1
 ) vix9d ON true
@@ -49,7 +49,7 @@ LEFT JOIN LATERAL (
   SELECT close, valid_time
   FROM price_history
   WHERE symbol = '$VVIX'
-  AND valid_time <= q2.valid_time
+  AND valid_time <= samples.valid_time
   ORDER BY valid_time DESC
   LIMIT 1
 ) vvix ON true
@@ -59,7 +59,7 @@ LEFT JOIN LATERAL (
       valid_time
   FROM price_history
   WHERE symbol = '$SKEW'
-  AND valid_time <= q2.valid_time
+  AND valid_time <= samples.valid_time
   ORDER BY valid_time DESC
   LIMIT 1
 ) skew ON true
