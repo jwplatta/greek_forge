@@ -1,0 +1,20 @@
+[project]
+name = "greek-forge"
+version = "0.1.0"
+description = "Machine learning project for predicting option Greeks (delta values) for OTM call and put options"
+requires-python = ">=3.10"
+dependencies = [
+    "scikit-learn>=1.3.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "optuna>=3.0.0",
+    "psycopg2-binary>=2.9.0",
+    "flask>=2.3.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "jupyter>=1.0.0",
+]

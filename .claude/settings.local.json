@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp show:*)",
+      "Bash(claude mcp:*)",
+      "mcp__obsidian__simple_search",
+      "mcp__obsidian__get_file",
+      "Bash(mkdir:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
