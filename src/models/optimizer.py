@@ -8,6 +8,10 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import KFold
 
+from src.utils.logger import get_logger
+
+logger = get_logger()
+
 
 def optimize_hyperparameters(
     X_train: pd.DataFrame,
@@ -59,12 +63,12 @@ def optimize_hyperparameters(
         sampler=optuna.samplers.TPESampler(seed=random_state),
     )
 
-    print(f"Starting hyperparameter optimization with {n_trials} trials...")
+    logger.info(f"Starting hyperparameter optimization with {n_trials} trials...")
     study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
 
-    print("\nBest trial:")
-    print(f"  MAE: {study.best_value:.6f}")
-    print(f"  Params: {study.best_params}")
+    logger.info("Best trial:")
+    logger.info(f"  MAE: {study.best_value:.6f}")
+    logger.info(f"  Params: {study.best_params}")
 
     return study.best_params
 
@@ -134,16 +138,16 @@ def optimize_with_pruning(
         sampler=optuna.samplers.TPESampler(seed=random_state),
     )
 
-    print(f"Starting optimization with pruning ({n_trials} trials max)...")
+    logger.info(f"Starting optimization with pruning ({n_trials} trials max)...")
     study.optimize(
         objective, n_trials=n_trials, timeout=timeout, show_progress_bar=True
     )
 
-    print("\nBest trial:")
-    print(f"  Score: {study.best_value:.6f}")
-    print(f"  Params: {study.best_params}")
-    print(f"  Completed trials: {len(study.trials)}")
-    print(
+    logger.info("Best trial:")
+    logger.info(f"  Score: {study.best_value:.6f}")
+    logger.info(f"  Params: {study.best_params}")
+    logger.info(f"  Completed trials: {len(study.trials)}")
+    logger.info(
         f"  Pruned trials: {len([t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED])}"
     )
 
@@ -155,14 +159,14 @@ if __name__ == "__main__":
     from src.data.loader import fetch_call_samples
     from src.data.preprocessor import preprocess_training_data
 
-    print("Loading and preprocessing data...")
+    logger.info("Loading and preprocessing data...")
     df = fetch_call_samples()
     X_train, X_test, y_train, y_test, preprocessor = preprocess_training_data(df)
 
-    print("\nRunning hyperparameter optimization (20 trials for demo)...")
+    logger.info("Running hyperparameter optimization (20 trials for demo)...")
     best_params = optimize_hyperparameters(X_train, y_train, n_trials=20, cv=5)
 
-    print("\n" + "=" * 60)
-    print("Best hyperparameters found:")
+    logger.info("=" * 60)
+    logger.info("Best hyperparameters found:")
     for param, value in best_params.items():
-        print(f"  {param}: {value}")
+        logger.info(f"  {param}: {value}")

@@ -7,6 +7,10 @@ from typing import Dict, Optional, Tuple, Literal
 
 import joblib
 
+from src.utils.logger import get_logger
+
+logger = get_logger()
+
 
 def get_model_dir(
     contract_type: Literal["CALL", "PUT"], version: str, base_dir: Optional[Path] = None
@@ -62,11 +66,11 @@ def save_model(
 
     model_path = model_dir / "model.joblib"
     joblib.dump(model, model_path)
-    print(f"Model saved to: {model_path}")
+    logger.info(f"Model saved to: {model_path}")
 
     preprocessor_path = model_dir / "preprocessor.joblib"
     joblib.dump(preprocessor, preprocessor_path)
-    print(f"Preprocessor saved to: {preprocessor_path}")
+    logger.info(f"Preprocessor saved to: {preprocessor_path}")
 
     metadata = {
         "contract_type": contract_type,
@@ -80,15 +84,15 @@ def save_model(
     metadata_path = model_dir / "metadata.json"
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"Metadata saved to: {metadata_path}")
+    logger.info(f"Metadata saved to: {metadata_path}")
 
     if feature_names is not None:
         feature_path = model_dir / "feature_names.json"
         with open(feature_path, "w") as f:
             json.dump({"features": feature_names}, f, indent=2)
-        print(f"Feature names saved to: {feature_path}")
+        logger.info(f"Feature names saved to: {feature_path}")
 
-    print(f"\nModel artifacts saved to: {model_dir}")
+    logger.info(f"Model artifacts saved to: {model_dir}")
     return model_dir
 
 
@@ -127,9 +131,9 @@ def load_model(
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
 
-    print(f"Loaded model version {version} for {contract_type} options")
-    print(f"  Created: {metadata.get('created_at', 'unknown')}")
-    print(f"  Model type: {metadata.get('model_type', 'unknown')}")
+    logger.info(f"Loaded model version {version} for {contract_type} options")
+    logger.info(f"  Created: {metadata.get('created_at', 'unknown')}")
+    logger.info(f"  Model type: {metadata.get('model_type', 'unknown')}")
 
     return model, preprocessor, metadata
 
@@ -216,34 +220,34 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print(f"Training {args.contract_type} option delta prediction model...")
-    print(f"Version: {args.version}")
-    print("=" * 60)
+    logger.info(f"Training {args.contract_type} option delta prediction model...")
+    logger.info(f"Version: {args.version}")
+    logger.info("=" * 60)
 
-    print("\nLoading and preprocessing data...")
+    logger.info("Loading and preprocessing data...")
     df = fetch_option_samples(contract_type=args.contract_type)
-    print(f"Loaded {len(df)} samples")
+    logger.info(f"Loaded {len(df)} samples")
 
     X_train, X_test, y_train, y_test, preprocessor = preprocess_training_data(df)
-    print(f"Training set: {len(X_train)} samples")
-    print(f"Test set: {len(X_test)} samples")
+    logger.info(f"Training set: {len(X_train)} samples")
+    logger.info(f"Test set: {len(X_test)} samples")
 
-    print("\n" + "=" * 60)
-    print(f"Training model with {args.cv_folds}-fold cross-validation...")
+    logger.info("=" * 60)
+    logger.info(f"Training model with {args.cv_folds}-fold cross-validation...")
     model, cv_results = train_with_cv(X_train, y_train, cv=args.cv_folds)
 
-    print(f"\nCross-validation {cv_results['metric']}:")
-    print(f"  Mean: {cv_results['mean']:.6f}")
-    print(f"  Std: {cv_results['std']:.6f}")
-    print(f"  Scores: {cv_results['scores']}")
+    logger.info(f"Cross-validation {cv_results['metric']}:")
+    logger.info(f"  Mean: {cv_results['mean']:.6f}")
+    logger.info(f"  Std: {cv_results['std']:.6f}")
+    logger.info(f"  Scores: {cv_results['scores']}")
 
-    print("\n" + "=" * 60)
-    print("Evaluating model on test set...")
+    logger.info("=" * 60)
+    logger.info("Evaluating model on test set...")
     evaluation = evaluate_model(model, X_train, X_test, y_train, y_test)
     print_evaluation_report(evaluation)
 
-    print("\n" + "=" * 60)
-    print("Saving model...")
+    logger.info("=" * 60)
+    logger.info("Saving model...")
     metrics = {
         "cv_mean_mae": cv_results["mean"],
         "cv_std_mae": cv_results["std"],
@@ -263,9 +267,11 @@ if __name__ == "__main__":
         feature_names=X_train.columns.tolist(),
     )
 
-    print("\n" + "=" * 60)
-    print("Model training complete!")
-    print(f"Model saved to: {model_dir}")
-    print("\nTo use this model:")
-    print("  from src.api.predictor import Predictor")
-    print(f"  predictor = Predictor.load('{args.contract_type}', '{args.version}')")
+    logger.info("=" * 60)
+    logger.info("Model training complete!")
+    logger.info(f"Model saved to: {model_dir}")
+    logger.info("To use this model:")
+    logger.info("  from src.api.predictor import Predictor")
+    logger.info(
+        f"  predictor = Predictor.load('{args.contract_type}', '{args.version}')"
+    )

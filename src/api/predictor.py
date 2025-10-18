@@ -5,6 +5,9 @@ import pandas as pd
 import numpy as np
 
 from src.utils.model_io import load_model, get_latest_version
+from src.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class Predictor:
@@ -47,7 +50,7 @@ class Predictor:
             version = get_latest_version(contract_type)
             if version is None:
                 raise FileNotFoundError(f"No models found for {contract_type} options")
-            print(f"Loading latest version: {version}")
+            logger.info(f"Loading latest version: {version}")
 
         model, preprocessor, metadata = load_model(contract_type, version)
         return cls(model, preprocessor, metadata)
