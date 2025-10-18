@@ -79,9 +79,77 @@ uv run pytest
 uv run jupyter notebook
 ```
 
+Alternatively, use the provided Makefile for common tasks:
+```bash
+# View all available commands
+make help
+
+# Code quality
+make test          # Run all unit tests
+make lint          # Run linting with auto-fix
+make format        # Format code with ruff
+
+# Model training
+make build-call-model   # Train CALL option model
+make build-put-model    # Train PUT option model
+make build-models       # Train both models
+
+# Utilities
+make clean         # Remove cache files
+make sync          # Sync dependencies
+```
+
 ## Development
 
 See `doc/project_plan.md` for detailed project planning and development workflow.
+
+### Training Models
+
+Train models using the command-line interface:
+
+```bash
+# Train CALL option model (default)
+uv run python src/utils/model_io.py --contract-type CALL
+
+# Train PUT option model
+uv run python src/utils/model_io.py --contract-type PUT
+
+# Specify version and CV folds
+uv run python src/utils/model_io.py --contract-type CALL --version 2.0.0 --cv-folds 10
+```
+
+Or use the Makefile shortcuts:
+```bash
+make build-call-model
+make build-put-model
+make build-models     # Build both
+```
+
+### Using Trained Models
+
+```python
+from src.api.predictor import Predictor
+
+# Load latest CALL model
+predictor = Predictor.load("CALL")
+
+# Or load specific version
+predictor = Predictor.load("CALL", version="1.0.0")
+
+# Make predictions
+input_data = {
+    "dte": 5,
+    "moneyness": 0.99,
+    "mark": 10.5,
+    "strike": 6000.0,
+    "underlying_price": 6060.0,
+    "vix9d": 15.0,
+    "vvix": 90.0,
+    "skew": 140.0,
+}
+delta = predictor.predict_single(input_data)
+print(f"Predicted delta: {delta:.4f}")
+```
 
 ## License
 
