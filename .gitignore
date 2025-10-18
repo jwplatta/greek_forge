@@ -8,6 +8,8 @@ env/
 venv/
 ENV/
 .venv
+*.egg-info/
+/build
 
 # Data and models
 data/
@@ -47,3 +49,4 @@ reports/
 # OS
 .DS_Store
 Thumbs.db
+
