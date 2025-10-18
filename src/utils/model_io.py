@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     logger.info("=" * 60)
     logger.info("Evaluating model on test set...")
-    evaluation = evaluate_model(model, X_train, X_test, y_train, y_test)
+    evaluation = evaluate_model(model, X_test, y_test, X_train, y_train)
     generate_evaluation_report(evaluation)
 
     logger.info("=" * 60)
@@ -254,10 +254,10 @@ if __name__ == "__main__":
     metrics = {
         "cv_mean_mae": cv_results["mean"],
         "cv_std_mae": cv_results["std"],
-        "test_mae": evaluation["test_metrics"]["mae"],
-        "test_rmse": evaluation["test_metrics"]["rmse"],
-        "test_r2": evaluation["test_metrics"]["r2"],
-        "train_mae": evaluation["train_metrics"]["mae"],
+        "test_mae": evaluation["test"]["mae"],
+        "test_rmse": evaluation["test"]["rmse"],
+        "test_r2": evaluation["test"]["r2"],
+        "train_mae": evaluation["train"]["mae"],
     }
 
     model_dir = save_model(
