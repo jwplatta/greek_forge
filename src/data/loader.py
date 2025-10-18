@@ -114,86 +114,6 @@ def fetch_put_samples(limit: Optional[int] = None) -> pd.DataFrame:
     return fetch_option_samples(contract_type="PUT", limit=limit)
 
 
-def balance_delta_samples(
-    df: pd.DataFrame,
-    n_bins: int = 10,
-    samples_per_bin: int = 2000,
-    target_col: str = "delta",
-) -> pd.DataFrame:
-    """
-    Balance dataset by binning delta values and resampling each bin.
-
-    This addresses the class imbalance problem where most delta values are near 0.
-    Creates equal-sized bins and resamples each to have the same number of samples.
-
-    Args:
-        df: Input dataframe
-        n_bins: Number of bins to create (default: 10)
-        samples_per_bin: Number of samples per bin (default: 2000)
-        target_col: Name of the target column to bin (default: 'delta')
-
-    Returns:
-        pd.DataFrame: Balanced dataframe with resampled data
-    """
-    df["delta_bin"] = pd.cut(df[target_col], bins=n_bins, labels=False)
-    balanced_df = (
-        df.groupby("delta_bin", group_keys=False)
-        .apply(lambda x: x.sample(n=samples_per_bin, replace=True))
-        .reset_index(drop=True)
-    )
-
-    balanced_df = balanced_df.drop("delta_bin", axis=1)
-
-    return balanced_df
-
-
-def prepare_features_target(
-    df: pd.DataFrame,
-    target_col: str = "delta",
-    feature_cols: Optional[list] = None,
-    balance_samples: bool = True,
-    n_bins: int = 10,
-    samples_per_bin: int = 2000,
-) -> tuple[pd.DataFrame, pd.Series]:
-    """
-    Prepare features and target from the dataframe.
-
-    Args:
-        df: Input dataframe
-        target_col: Name of the target column (default: 'delta')
-        feature_cols: List of feature columns to use. If None, uses default features
-        balance_samples: Whether to balance samples via delta binning (default: True)
-        n_bins: Number of bins for balancing (default: 10)
-        samples_per_bin: Samples per bin when balancing (default: 2000)
-
-    Returns:
-        tuple: (X, y) where X is features DataFrame and y is target Series
-    """
-    df = df.dropna(subset=[target_col])
-
-    if balance_samples:
-        df = balance_delta_samples(
-            df, n_bins=n_bins, samples_per_bin=samples_per_bin, target_col=target_col
-        )
-
-    if feature_cols is None:
-        feature_cols = [
-            "dte",
-            "moneyness",
-            "mark",
-            "strike",
-            "underlying_price",
-            "vix9d",
-            "vvix",
-            "skew",
-        ]
-
-    X = df[feature_cols].copy()
-    y = df[target_col].copy()
-
-    return X, y
-
-
 if __name__ == "__main__":
     # Example usage
     print("Fetching call samples...")
@@ -202,7 +122,7 @@ if __name__ == "__main__":
     print(f"\nColumns: {df_calls.columns.tolist()}")
 
     print("\n" + "=" * 60)
-    print("Delta distribution before balancing:")
+    print("Delta distribution:")
     print(df_calls["delta"].describe())
     print("\nDelta value counts (binned):")
     df_calls["temp_bin"] = pd.cut(df_calls["delta"], bins=10, labels=False)
@@ -210,20 +130,11 @@ if __name__ == "__main__":
     df_calls = df_calls.drop("temp_bin", axis=1)
 
     print("\n" + "=" * 60)
-    print("Preparing features and target (with balancing)...")
-    X, y = prepare_features_target(df_calls, balance_samples=True)
-    print(f"\nFeatures shape: {X.shape}")
-    print(f"Target shape: {y.shape}")
-    print(f"\nFeature columns: {X.columns.tolist()}")
+    print("Sample data:")
+    print(df_calls.head())
 
     print("\n" + "=" * 60)
-    print("Delta distribution after balancing:")
-    print(y.describe())
-
-    print("\n" + "=" * 60)
-    print("Testing without balancing...")
-    X_unbalanced, y_unbalanced = prepare_features_target(
-        df_calls, balance_samples=False
-    )
-    print(f"Unbalanced shape: {X_unbalanced.shape}")
-    print(f"Balanced shape: {X.shape}")
+    print("Fetching put samples...")
+    df_puts = fetch_put_samples(limit=10)
+    print(f"\nLoaded {len(df_puts)} put samples")
+    print(df_puts.head())
