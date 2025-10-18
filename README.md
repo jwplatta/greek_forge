@@ -101,7 +101,11 @@ make sync          # Sync dependencies
 
 ## Development
 
-See `doc/project_plan.md` for detailed project planning and development workflow.
+See the following documentation:
+- `doc/project_plan.md` - Project planning and development workflow
+- `doc/ml_architecture.md` - Machine learning architecture overview
+- `doc/api.md` - FastAPI REST API documentation
+- `doc/logging.md` - Logging system documentation
 
 ### Training Models
 
@@ -125,7 +129,43 @@ make build-put-model
 make build-models     # Build both
 ```
 
-### Using Trained Models
+### Using the API
+
+Start the FastAPI server:
+```bash
+# Development mode with auto-reload
+make serve-dev
+
+# Production mode
+make serve
+```
+
+The API will be available at `http://localhost:8000` with interactive documentation at `http://localhost:8000/docs`.
+
+Example API request (single prediction):
+```bash
+curl -X POST "http://localhost:8000/predict_delta" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contract_type": "CALL",
+    "features": {
+      "dte": 5,
+      "moneyness": 0.99,
+      "mark": 10.5,
+      "strike": 6000.0,
+      "underlying_price": 6060.0,
+      "vix9d": 15.0,
+      "vvix": 90.0,
+      "skew": 140.0
+    }
+  }'
+```
+
+For batch predictions, use `/predict_deltas` with an array of features.
+
+See `doc/api.md` for complete API documentation.
+
+### Using Models Programmatically
 
 ```python
 from src.api.predictor import Predictor

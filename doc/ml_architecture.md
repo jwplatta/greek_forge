@@ -135,10 +135,11 @@ models/
 #### `app.py`
 - **Purpose**: FastAPI REST API
 - **Endpoints**:
-  - `POST /predict`: Single prediction
-  - `POST /predict/batch`: Batch predictions
+  - `POST /predict_delta`: Single delta prediction
+  - `POST /predict_deltas`: Batch delta predictions
   - `GET /health`: Health check
-  - `GET /model/info`: Model metadata
+  - `GET /models`: List available models
+  - `GET /models/{contract_type}/{version}`: Get model metadata
 
 ## Workflow
 
