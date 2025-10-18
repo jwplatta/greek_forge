@@ -39,7 +39,8 @@ notebooks/*.ipynb
 .coverage
 htmlcov/
 
-# Docker
+# Logs
+logs/
 *.log
 
 # OS
