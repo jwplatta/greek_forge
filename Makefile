@@ -1,4 +1,4 @@
-.PHONY: test lint format build-call-model build-put-model build-models clean help
+.PHONY: test lint format build-call-model build-put-model build-models serve serve-dev clean help
 
 help:
 	@echo "Greek Forge - Available Make Targets"
@@ -14,6 +14,10 @@ help:
 	@echo "  make build-call-model  - Train and save CALL option model"
 	@echo "  make build-put-model   - Train and save PUT option model"
 	@echo "  make build-models      - Train and save both CALL and PUT models"
+	@echo ""
+	@echo "API Server:"
+	@echo "  make serve         - Start FastAPI server (production mode)"
+	@echo "  make serve-dev     - Start FastAPI server (development mode with auto-reload)"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean         - Remove Python cache files and artifacts"
@@ -41,6 +45,14 @@ build-put-model:
 	uv run python src/utils/model_io.py --contract-type PUT
 
 build-models: build-call-model build-put-model
+
+serve:
+	@echo "Starting Greek Forge API server..."
+	uv run uvicorn src.api.app:app --host 0.0.0.0 --port 8000
+
+serve-dev:
+	@echo "Starting Greek Forge API server (development mode)..."
+	uv run uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
 
 sync:
 	uv sync
