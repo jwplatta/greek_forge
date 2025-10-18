@@ -20,7 +20,7 @@ src/
 │   └── optimizer.py       # Hyperparameter tuning with Optuna
 ├── api/
 │   ├── __init__.py
-│   ├── app.py            # Flask application
+│   ├── app.py            # FastAPI application
 │   └── predictor.py      # Model loading & prediction service
 └── utils/
     ├── __init__.py
@@ -133,7 +133,7 @@ models/
   - `Predictor.predict_proba()`: Confidence scores (if applicable)
 
 #### `app.py`
-- **Purpose**: Flask REST API
+- **Purpose**: FastAPI REST API
 - **Endpoints**:
   - `POST /predict`: Single prediction
   - `POST /predict/batch`: Batch predictions

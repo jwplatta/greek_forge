@@ -8,7 +8,7 @@ Machine learning project to predict option Greeks (delta values) for OTM call an
 - **ML Framework**: scikit-learn (HistGradientBoostingRegressor)
 - **Optimization**: Optuna
 - **Database**: PostgreSQL
-- **API**: Flask
+- **API**: FastAPI
 - **Containerization**: Docker
 
 ## Project Structure

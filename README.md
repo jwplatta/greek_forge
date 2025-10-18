@@ -4,7 +4,7 @@ A machine learning project for predicting option Greeks, specifically delta valu
 
 ## Overview
 
-Greek Forge uses gradient boosting algorithms to predict option Greeks based on historical data stored in PostgreSQL. The project provides a Flask API for serving predictions and is containerized with Docker for easy deployment.
+Greek Forge uses gradient boosting algorithms to predict option Greeks based on historical data stored in PostgreSQL. The project provides a FastAPI REST API for serving predictions and is containerized with Docker for easy deployment.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ Greek Forge uses gradient boosting algorithms to predict option Greeks based on 
 - **scikit-learn** - Machine learning (HistGradientBoostingRegressor)
 - **Optuna** - Hyperparameter optimization
 - **PostgreSQL** - Data storage
-- **Flask** - REST API
+- **FastAPI** - REST API
 - **Docker** - Containerization
 
 ## Project Structure
@@ -24,7 +24,7 @@ greek_forge/
 ├── src/                    # Source code
 │   ├── data/              # Data preprocessing and loading
 │   ├── models/            # Model training and evaluation
-│   ├── api/               # Flask API
+│   ├── api/               # FastAPI REST API
 │   └── utils/             # Utility functions
 ├── tests/                 # Unit tests
 ├── notebooks/             # Jupyter notebooks for exploration
