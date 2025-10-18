@@ -1,11 +1,17 @@
 """Model evaluation and metrics."""
 
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, TextIO
+import sys
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.inspection import permutation_importance
+
+from src.utils.logger import get_logger
+
+logger = get_logger()
 
 
 def evaluate_model(
@@ -68,7 +74,7 @@ def calculate_feature_importance(
     Returns:
         DataFrame with feature importance scores
     """
-    print("Calculating feature importance (this may take a minute)...")
+    logger.info("Calculating feature importance (this may take a minute)...")
 
     perm_importance = permutation_importance(
         model, X, y, n_repeats=n_repeats, random_state=random_state, n_jobs=-1
@@ -124,69 +130,111 @@ def analyze_predictions(
     return analysis
 
 
-def print_evaluation_report(
+def _write_evaluation_report(
+    file: TextIO,
     metrics: Dict,
     feature_importance: Optional[pd.DataFrame] = None,
     error_analysis: Optional[Dict] = None,
 ):
     """
-    Print a formatted evaluation report.
+    Write formatted evaluation report to a file object.
+
+    Args:
+        file: File object to write to (can be sys.stdout or a file)
+        metrics: Metrics from evaluate_model()
+        feature_importance: Optional feature importance DataFrame
+        error_analysis: Optional error analysis from analyze_predictions()
+    """
+    file.write("\n" + "=" * 60 + "\n")
+    file.write("MODEL EVALUATION REPORT\n")
+    file.write("=" * 60 + "\n")
+
+    if "test" in metrics:
+        file.write("\nTest Set Performance:\n")
+        file.write(f"  MAE:  {metrics['test']['mae']:.6f}\n")
+        file.write(f"  RMSE: {metrics['test']['rmse']:.6f}\n")
+        file.write(f"  R²:   {metrics['test']['r2']:.6f}\n")
+
+    if "train" in metrics:
+        file.write("\nTraining Set Performance:\n")
+        file.write(f"  MAE:  {metrics['train']['mae']:.6f}\n")
+        file.write(f"  RMSE: {metrics['train']['rmse']:.6f}\n")
+        file.write(f"  R²:   {metrics['train']['r2']:.6f}\n")
+
+        if "test" in metrics:
+            mae_diff = abs(metrics["train"]["mae"] - metrics["test"]["mae"])
+            if mae_diff > 0.01:
+                file.write(
+                    f"\n  Possible overfitting detected (MAE diff: {mae_diff:.6f})\n"
+                )
+
+    if feature_importance is not None:
+        file.write("\n" + "=" * 60 + "\n")
+        file.write("FEATURE IMPORTANCE\n")
+        file.write("=" * 60 + "\n")
+        file.write(feature_importance.to_string(index=False) + "\n")
+
+    if error_analysis is not None:
+        file.write("\n" + "=" * 60 + "\n")
+        file.write("ERROR ANALYSIS\n")
+        file.write("=" * 60 + "\n")
+        file.write("\nError Statistics:\n")
+        file.write(f"  Mean:   {error_analysis['mean_error']:.6f}\n")
+        file.write(f"  Median: {error_analysis['median_error']:.6f}\n")
+        file.write(f"  Std:    {error_analysis['std_error']:.6f}\n")
+        file.write(f"  Max:    {error_analysis['max_error']:.6f}\n")
+
+        file.write("\nError Percentiles:\n")
+        file.write(f"  90th: {error_analysis['percentile_90']:.6f}\n")
+        file.write(f"  95th: {error_analysis['percentile_95']:.6f}\n")
+        file.write(f"  99th: {error_analysis['percentile_99']:.6f}\n")
+
+        file.write("\nError Distribution:\n")
+        bins = error_analysis["error_bins"]
+        total = sum(bins.values())
+        for bin_name, count in bins.items():
+            pct = (count / total) * 100 if total > 0 else 0
+            file.write(f"  {bin_name}: {count} ({pct:.1f}%)\n")
+
+    file.write("\n" + "=" * 60 + "\n")
+
+
+def generate_evaluation_report(
+    metrics: Dict,
+    feature_importance: Optional[pd.DataFrame] = None,
+    error_analysis: Optional[Dict] = None,
+    output_file: Optional[Path] = None,
+):
+    """
+    Generate a formatted evaluation report (print to console or write to file).
 
     Args:
         metrics: Metrics from evaluate_model()
         feature_importance: Optional feature importance DataFrame
         error_analysis: Optional error analysis from analyze_predictions()
+        output_file: Optional file path to write report. If None, prints to console.
+
+    Example:
+        >>> # Print to console
+        >>> generate_evaluation_report(metrics)
+
+        >>> # Write to file
+        >>> generate_evaluation_report(metrics, output_file=Path("reports/eval.txt"))
+
+        >>> # Write to file AND print to console
+        >>> report_path = Path("reports/eval.txt")
+        >>> generate_evaluation_report(metrics, output_file=report_path)
+        >>> # Then print the file
+        >>> with open(report_path) as f:
+        >>>     print(f.read())
     """
-    print("\n" + "=" * 60)
-    print("MODEL EVALUATION REPORT")
-    print("=" * 60)
-
-    if "test" in metrics:
-        print("\nTest Set Performance:")
-        print(f"  MAE:  {metrics['test']['mae']:.6f}")
-        print(f"  RMSE: {metrics['test']['rmse']:.6f}")
-        print(f"  R²:   {metrics['test']['r2']:.6f}")
-
-    if "train" in metrics:
-        print("\nTraining Set Performance:")
-        print(f"  MAE:  {metrics['train']['mae']:.6f}")
-        print(f"  RMSE: {metrics['train']['rmse']:.6f}")
-        print(f"  R²:   {metrics['train']['r2']:.6f}")
-
-        if "test" in metrics:
-            mae_diff = abs(metrics["train"]["mae"] - metrics["test"]["mae"])
-            if mae_diff > 0.01:
-                print(f"\n⚠️  Possible overfitting detected (MAE diff: {mae_diff:.6f})")
-
-    if feature_importance is not None:
-        print("\n" + "=" * 60)
-        print("FEATURE IMPORTANCE")
-        print("=" * 60)
-        print(feature_importance.to_string(index=False))
-
-    if error_analysis is not None:
-        print("\n" + "=" * 60)
-        print("ERROR ANALYSIS")
-        print("=" * 60)
-        print("\nError Statistics:")
-        print(f"  Mean:   {error_analysis['mean_error']:.6f}")
-        print(f"  Median: {error_analysis['median_error']:.6f}")
-        print(f"  Std:    {error_analysis['std_error']:.6f}")
-        print(f"  Max:    {error_analysis['max_error']:.6f}")
-
-        print("\nError Percentiles:")
-        print(f"  90th: {error_analysis['percentile_90']:.6f}")
-        print(f"  95th: {error_analysis['percentile_95']:.6f}")
-        print(f"  99th: {error_analysis['percentile_99']:.6f}")
-
-        print("\nError Distribution:")
-        bins = error_analysis["error_bins"]
-        total = sum(bins.values())
-        for bin_name, count in bins.items():
-            pct = (count / total) * 100 if total > 0 else 0
-            print(f"  {bin_name}: {count} ({pct:.1f}%)")
-
-    print("\n" + "=" * 60)
+    if output_file is None:
+        _write_evaluation_report(sys.stdout, metrics, feature_importance, error_analysis)
+    else:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_file, "w") as f:
+            _write_evaluation_report(f, metrics, feature_importance, error_analysis)
+        logger.info(f"Evaluation report written to: {output_file}")
 
 
 if __name__ == "__main__":
@@ -195,17 +243,17 @@ if __name__ == "__main__":
     from src.data.preprocessor import preprocess_training_data
     from src.models.trainer import train_with_cv
 
-    print("Loading and preprocessing data...")
+    logger.info("Loading and preprocessing data...")
     df = fetch_call_samples()
     X_train, X_test, y_train, y_test, preprocessor = preprocess_training_data(df)
 
-    print("\nTraining model...")
+    logger.info("Training model...")
     model, cv_results = train_with_cv(X_train, y_train, cv=3)
 
-    print("\nEvaluating model...")
+    logger.info("Evaluating model...")
     metrics = evaluate_model(model, X_test, y_test, X_train, y_train)
 
-    print("\nCalculating feature importance...")
+    logger.info("Calculating feature importance...")
     feature_importance = calculate_feature_importance(
         model.model,
         X_train,
@@ -213,8 +261,17 @@ if __name__ == "__main__":
         n_repeats=5,
     )
 
-    print("\nAnalyzing prediction errors...")
+    logger.info("Analyzing prediction errors...")
     y_pred = model.predict(X_test)
     error_analysis = analyze_predictions(y_test, y_pred, X_test)
 
-    print_evaluation_report(metrics, feature_importance, error_analysis)
+    # Example 1: Print to console
+    logger.info("Printing evaluation report to console...")
+    generate_evaluation_report(metrics, feature_importance, error_analysis)
+
+    # Example 2: Write to file
+    logger.info("Writing evaluation report to file...")
+    report_path = Path("reports/evaluation_report.txt")
+    generate_evaluation_report(
+        metrics, feature_importance, error_analysis, output_file=report_path
+    )

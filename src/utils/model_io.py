@@ -194,7 +194,7 @@ if __name__ == "__main__":
     from src.data.loader import fetch_option_samples
     from src.data.preprocessor import preprocess_training_data
     from src.models.trainer import train_with_cv
-    from src.models.evaluator import evaluate_model, print_evaluation_report
+    from src.models.evaluator import evaluate_model, generate_evaluation_report
 
     parser = argparse.ArgumentParser(
         description="Train and save option delta prediction model"
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     logger.info("=" * 60)
     logger.info("Evaluating model on test set...")
     evaluation = evaluate_model(model, X_train, X_test, y_train, y_test)
-    print_evaluation_report(evaluation)
+    generate_evaluation_report(evaluation)
 
     logger.info("=" * 60)
     logger.info("Saving model...")

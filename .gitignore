@@ -39,8 +39,9 @@ notebooks/*.ipynb
 .coverage
 htmlcov/
 
-# Logs
+# Logs and reports
 logs/
+reports/
 *.log
 
 # OS
