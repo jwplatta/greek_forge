@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 from typing import Dict
 
+import numpy as np
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 
@@ -20,6 +21,7 @@ from src.api.predictor import Predictor
 from src.utils.constants import (
     VALID_CONTRACT_TYPES,
 )
+from src.utils.curve_fitting import interpolate_deltas, smooth_deltas
 from src.utils.logger import get_logger
 from src.utils.model_io import get_latest_version, list_model_versions, load_model
 
@@ -292,11 +294,50 @@ async def predict_deltas(request: BatchPredictionRequest):
         features_list = [f.model_dump() for f in request.features]
         deltas = predictor.predict_batch(features_list)
 
+        strikes = np.array([f["strike"] for f in features_list])
+        deltas_array = np.array(deltas)
+
+        smoothed = False
+        interpolated = False
+        result_strikes = None
+
+        if request.interpolate:
+            if request.interpolation_options is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="interpolation_options required when interpolate=true",
+                )
+
+            interpolated_strikes, interpolated_deltas = interpolate_deltas(
+                strikes=strikes,
+                deltas=deltas_array,
+                strike_min=request.interpolation_options.strike_min,
+                strike_max=request.interpolation_options.strike_max,
+                strike_step=request.interpolation_options.strike_step,
+                steepness_factor=request.steepness_factor,
+            )
+
+            deltas_array = interpolated_deltas
+            result_strikes = interpolated_strikes.tolist()
+            interpolated = True
+            smoothed = True  # Interpolation includes smoothing
+
+        elif request.smooth:
+            deltas_array = smooth_deltas(
+                strikes=strikes,
+                deltas=deltas_array,
+                steepness_factor=request.steepness_factor,
+            )
+            smoothed = True
+
         return BatchPredictionResponse(
-            predictions=deltas.tolist(),
+            predictions=deltas_array.tolist(),
+            strikes=result_strikes,
             contract_type=request.contract_type,
             model_version=predictor.version,
-            count=len(deltas),
+            count=len(deltas_array),
+            smoothed=smoothed,
+            interpolated=interpolated,
         )
     except HTTPException:
         raise
