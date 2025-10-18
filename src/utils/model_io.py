@@ -3,17 +3,18 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Literal
+from typing import Dict, Optional, Tuple
 
 import joblib
 
+from src.utils.constants import CONTRACT_TYPE_CALL, ContractType
 from src.utils.logger import get_logger
 
 logger = get_logger()
 
 
 def get_model_dir(
-    contract_type: Literal["CALL", "PUT"], version: str, base_dir: Optional[Path] = None
+    contract_type: ContractType, version: str, base_dir: Optional[Path] = None
 ) -> Path:
     """
     Get the directory path for a specific model version.
@@ -29,7 +30,7 @@ def get_model_dir(
     if base_dir is None:
         base_dir = Path(__file__).parent.parent.parent / "models"
 
-    contract_dir = "calls" if contract_type == "CALL" else "puts"
+    contract_dir = "calls" if contract_type == CONTRACT_TYPE_CALL else "puts"
     model_dir = base_dir / contract_dir / f"v{version}"
 
     return model_dir
@@ -38,7 +39,7 @@ def get_model_dir(
 def save_model(
     model,
     preprocessor,
-    contract_type: Literal["CALL", "PUT"],
+    contract_type: ContractType,
     version: str,
     metrics: Dict,
     hyperparameters: Dict,
@@ -97,7 +98,7 @@ def save_model(
 
 
 def load_model(
-    contract_type: Literal["CALL", "PUT"], version: str, base_dir: Optional[Path] = None
+    contract_type: ContractType, version: str, base_dir: Optional[Path] = None
 ) -> Tuple:
     """
     Load trained model with all artifacts.
@@ -139,7 +140,7 @@ def load_model(
 
 
 def list_model_versions(
-    contract_type: Literal["CALL", "PUT"], base_dir: Optional[Path] = None
+    contract_type: ContractType, base_dir: Optional[Path] = None
 ) -> list:
     """
     List all available model versions for a contract type.
@@ -154,7 +155,7 @@ def list_model_versions(
     if base_dir is None:
         base_dir = Path(__file__).parent.parent.parent / "models"
 
-    contract_dir = "calls" if contract_type == "CALL" else "puts"
+    contract_dir = "calls" if contract_type == CONTRACT_TYPE_CALL else "puts"
     contract_path = base_dir / contract_dir
 
     if not contract_path.exists():
@@ -170,7 +171,7 @@ def list_model_versions(
 
 
 def get_latest_version(
-    contract_type: Literal["CALL", "PUT"], base_dir: Optional[Path] = None
+    contract_type: ContractType, base_dir: Optional[Path] = None
 ) -> Optional[str]:
     """
     Get the latest model version for a contract type.
@@ -199,11 +200,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Train and save option delta prediction model"
     )
+    from src.utils.constants import VALID_CONTRACT_TYPES, CONTRACT_TYPE_CALL
+
     parser.add_argument(
         "--contract-type",
         type=str,
-        choices=["CALL", "PUT"],
-        default="CALL",
+        choices=VALID_CONTRACT_TYPES,
+        default=CONTRACT_TYPE_CALL,
         help="Type of option contract (CALL or PUT)",
     )
     parser.add_argument(

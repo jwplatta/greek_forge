@@ -1,8 +1,10 @@
 """Pydantic models for API request/response validation."""
 
-from typing import List, Literal
+from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from src.utils.constants import ContractType
 
 
 class OptionFeatures(BaseModel):
@@ -36,9 +38,7 @@ class OptionFeatures(BaseModel):
 class SinglePredictionRequest(BaseModel):
     """Request model for single delta prediction."""
 
-    contract_type: Literal["CALL", "PUT"] = Field(
-        ..., description="Type of option contract"
-    )
+    contract_type: ContractType = Field(..., description="Type of option contract")
     features: OptionFeatures = Field(..., description="Feature set for prediction")
     version: str = Field(
         default="latest", description="Model version to use (default: latest)"
@@ -67,9 +67,7 @@ class SinglePredictionRequest(BaseModel):
 class BatchPredictionRequest(BaseModel):
     """Request model for batch delta prediction."""
 
-    contract_type: Literal["CALL", "PUT"] = Field(
-        ..., description="Type of option contract"
-    )
+    contract_type: ContractType = Field(..., description="Type of option contract")
     features: List[OptionFeatures] = Field(
         ..., description="List of feature sets for batch prediction"
     )

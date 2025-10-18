@@ -229,7 +229,9 @@ def generate_evaluation_report(
         >>>     print(f.read())
     """
     if output_file is None:
-        _write_evaluation_report(sys.stdout, metrics, feature_importance, error_analysis)
+        _write_evaluation_report(
+            sys.stdout, metrics, feature_importance, error_analysis
+        )
     else:
         output_file.parent.mkdir(parents=True, exist_ok=True)
         with open(output_file, "w") as f:

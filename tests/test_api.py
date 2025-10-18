@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sklearn.ensemble import HistGradientBoostingRegressor
 
 from src.api.app import app
+from src.utils.constants import CONTRACT_TYPE_CALL
 from src.utils.model_io import save_model
 
 
@@ -38,7 +39,7 @@ def temp_model_dir(tmp_path):
     save_model(
         model=model,
         preprocessor=preprocessor,
-        contract_type="CALL",
+        contract_type=CONTRACT_TYPE_CALL,
         version="1.0.0",
         metrics=metrics,
         hyperparameters=hyperparameters,
@@ -90,7 +91,7 @@ class TestPredictDeltaEndpoint:
         mock_predictors.__contains__.return_value = True
 
         request_data = {
-            "contract_type": "CALL",
+            "contract_type": CONTRACT_TYPE_CALL,
             "features": {
                 "dte": 5,
                 "moneyness": 0.99,
@@ -111,7 +112,7 @@ class TestPredictDeltaEndpoint:
         assert "contract_type" in data
         assert "model_version" in data
         assert data["delta"] == 0.65
-        assert data["contract_type"] == "CALL"
+        assert data["contract_type"] == CONTRACT_TYPE_CALL
 
     def test_invalid_contract_type(self, client):
         """Test prediction with invalid contract type."""
@@ -135,7 +136,7 @@ class TestPredictDeltaEndpoint:
     def test_missing_required_field(self, client):
         """Test prediction with missing required field."""
         request_data = {
-            "contract_type": "CALL",
+            "contract_type": CONTRACT_TYPE_CALL,
             "features": {
                 "dte": 5,
                 "moneyness": 0.99,
@@ -157,7 +158,7 @@ class TestPredictDeltasEndpoint:
         mock_predictors.__contains__.return_value = True
 
         request_data = {
-            "contract_type": "CALL",
+            "contract_type": CONTRACT_TYPE_CALL,
             "features": [
                 {
                     "dte": 5,
@@ -201,11 +202,11 @@ class TestPredictDeltasEndpoint:
         assert "contract_type" in data
         assert len(data["predictions"]) == 3
         assert data["count"] == 3
-        assert data["contract_type"] == "CALL"
+        assert data["contract_type"] == CONTRACT_TYPE_CALL
 
     def test_empty_batch_prediction(self, client):
         """Test batch prediction with empty list."""
-        request_data = {"contract_type": "CALL", "features": []}
+        request_data = {"contract_type": CONTRACT_TYPE_CALL, "features": []}
 
         response = client.post("/predict_deltas", json=request_data)
         assert response.status_code == 422  # Validation error
@@ -226,7 +227,7 @@ class TestPredictDeltasEndpoint:
             }
         ] * 1001
 
-        request_data = {"contract_type": "CALL", "features": features}
+        request_data = {"contract_type": CONTRACT_TYPE_CALL, "features": features}
 
         response = client.post("/predict_deltas", json=request_data)
         assert response.status_code == 422  # Validation error
@@ -278,7 +279,7 @@ class TestModelInfoEndpoint:
     def test_get_model_info(self, mock_load_model, client):
         """Test getting model metadata."""
         mock_metadata = {
-            "contract_type": "CALL",
+            "contract_type": CONTRACT_TYPE_CALL,
             "version": "1.0.0",
             "created_at": "2024-01-01T00:00:00",
             "model_type": "HistGradientBoostingRegressor",
@@ -289,7 +290,7 @@ class TestModelInfoEndpoint:
         response = client.get("/models/CALL/1.0.0")
         assert response.status_code == 200
         data = response.json()
-        assert data["contract_type"] == "CALL"
+        assert data["contract_type"] == CONTRACT_TYPE_CALL
         assert data["version"] == "1.0.0"
         assert "metrics" in data
 

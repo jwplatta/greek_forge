@@ -6,6 +6,7 @@ from src.data.loader import (
     fetch_call_samples,
     fetch_put_samples,
 )
+from src.utils.constants import CONTRACT_TYPE_CALL, CONTRACT_TYPE_PUT
 
 
 class TestFetchOptionSamples:
@@ -44,12 +45,12 @@ class TestFetchOptionSamples:
     def test_fetch_call_samples_contract_type(self):
         """Test that fetch_call_samples only returns CALL options."""
         df = fetch_call_samples(limit=5)
-        assert (df["contract_type"] == "CALL").all()
+        assert (df["contract_type"] == CONTRACT_TYPE_CALL).all()
 
     def test_fetch_put_samples_contract_type(self):
         """Test that fetch_put_samples only returns PUT options."""
         df = fetch_put_samples(limit=5)
-        assert (df["contract_type"] == "PUT").all()
+        assert (df["contract_type"] == CONTRACT_TYPE_PUT).all()
 
     def test_numeric_columns_are_floats(self):
         """Test that numeric columns are float type."""

@@ -1,10 +1,11 @@
 """Data loading utilities for fetching training data from PostgreSQL."""
 
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Optional
 
 import pandas as pd
 
+from src.utils.constants import CONTRACT_TYPE_CALL, CONTRACT_TYPE_PUT, ContractType
 from src.utils.db import get_db_cursor
 
 
@@ -21,7 +22,7 @@ def load_option_samples_query() -> str:
 
 
 def fetch_option_samples(
-    contract_type: Literal["CALL", "PUT"] = "CALL", limit: Optional[int] = None
+    contract_type: ContractType = CONTRACT_TYPE_CALL, limit: Optional[int] = None
 ) -> pd.DataFrame:
     """
     Fetch option samples from the database.
@@ -96,7 +97,7 @@ def fetch_call_samples(limit: Optional[int] = None) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with call option samples
     """
-    return fetch_option_samples(contract_type="CALL", limit=limit)
+    return fetch_option_samples(contract_type=CONTRACT_TYPE_CALL, limit=limit)
 
 
 def fetch_put_samples(limit: Optional[int] = None) -> pd.DataFrame:
@@ -111,7 +112,7 @@ def fetch_put_samples(limit: Optional[int] = None) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with put option samples
     """
-    return fetch_option_samples(contract_type="PUT", limit=limit)
+    return fetch_option_samples(contract_type=CONTRACT_TYPE_PUT, limit=limit)
 
 
 if __name__ == "__main__":

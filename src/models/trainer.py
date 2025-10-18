@@ -25,7 +25,7 @@ class DeltaPredictor:
             "min_samples_leaf": 10,
             "learning_rate": 0.15,
             "max_depth": 10,
-            "categorical_features": None
+            "categorical_features": None,
         }
 
         default_params.update(params)

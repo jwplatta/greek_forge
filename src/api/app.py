@@ -17,6 +17,9 @@ from src.api.models import (
     SinglePredictionResponse,
 )
 from src.api.predictor import Predictor
+from src.utils.constants import (
+    VALID_CONTRACT_TYPES,
+)
 from src.utils.logger import get_logger
 from src.utils.model_io import get_latest_version, list_model_versions, load_model
 
@@ -30,7 +33,7 @@ async def lifespan(app: FastAPI):
     """Load models on startup, clean up on shutdown."""
     logger.info("Starting Greek Forge API...")
 
-    for contract_type in ["CALL", "PUT"]:
+    for contract_type in VALID_CONTRACT_TYPES:
         try:
             version = get_latest_version(contract_type)
             if version:
@@ -115,7 +118,7 @@ async def list_models():
     Returns models grouped by contract type with their versions.
     """
     models = {}
-    for contract_type in ["CALL", "PUT"]:
+    for contract_type in VALID_CONTRACT_TYPES:
         versions = list_model_versions(contract_type)
         models[contract_type] = versions
 
@@ -141,7 +144,7 @@ async def get_model_info(contract_type: str, version: str):
         Model metadata including metrics and creation date
     """
     contract_type = contract_type.upper()
-    if contract_type not in ["CALL", "PUT"]:
+    if contract_type not in VALID_CONTRACT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid contract_type: {contract_type}. Must be CALL or PUT",
