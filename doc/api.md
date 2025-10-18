@@ -104,7 +104,9 @@ Predict option delta for a single option.
 
 Predict option deltas for multiple options in a single request. Batch predictions are more efficient than multiple single predictions.
 
-**Request Body:**
+This endpoint supports optional **curve smoothing** and **delta interpolation** using logistic curve fitting, which can help create more realistic delta curves across strike prices.
+
+**Basic Request:**
 ```json
 {
   "contract_type": "CALL",
@@ -134,13 +136,16 @@ Predict option deltas for multiple options in a single request. Batch prediction
 }
 ```
 
-**Response:**
+**Basic Response:**
 ```json
 {
   "predictions": [0.6542, 0.7234],
+  "strikes": null,
   "contract_type": "CALL",
   "model_version": "1.0.0",
-  "count": 2
+  "count": 2,
+  "smoothed": false,
+  "interpolated": false
 }
 ```
 
@@ -148,6 +153,10 @@ Predict option deltas for multiple options in a single request. Batch prediction
 - `contract_type`: `"CALL"` or `"PUT"`
 - `features`: List of feature sets (1-1000 items)
 - `version`: Model version to use (default: `"latest"`)
+- `smooth`: Apply logistic curve smoothing to predictions (default: `false`)
+- `interpolate`: Interpolate deltas for missing strikes (default: `false`)
+- `interpolation_options`: Required when `interpolate=true` (see below)
+- `steepness_factor`: Curve steepness adjustment (0-2.0, default: `0.9`)
 
 **Feature Fields:**
 - `dte` (int): Days to expiration (>= 0)
@@ -159,10 +168,99 @@ Predict option deltas for multiple options in a single request. Batch prediction
 - `vvix` (float): VVIX volatility index (>= 0)
 - `skew` (float): Volatility skew
 
+#### Smoothing Only
+
+Apply logistic curve smoothing to reduce noise in predictions while keeping the same strikes:
+
+**Request:**
+```json
+{
+  "contract_type": "CALL",
+  "features": [
+    {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    {"dte": 3, "moneyness": 0.992, "mark": 42.0, "strike": 6010.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    {"dte": 3, "moneyness": 0.993, "mark": 39.1, "strike": 6015.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22}
+  ],
+  "smooth": true,
+  "steepness_factor": 0.9
+}
+```
+
+**Response:**
+```json
+{
+  "predictions": [0.748, 0.721, 0.710],
+  "strikes": null,
+  "contract_type": "CALL",
+  "model_version": "1.0.0",
+  "count": 3,
+  "smoothed": true,
+  "interpolated": false
+}
+```
+
+#### Interpolation
+
+Interpolate deltas for missing strikes within a specified range:
+
+**Request:**
+```json
+{
+  "contract_type": "CALL",
+  "features": [
+    {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    {"dte": 3, "moneyness": 0.993, "mark": 36.1, "strike": 6020.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    {"dte": 3, "moneyness": 0.994, "mark": 32.9, "strike": 6025.0,
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22}
+  ],
+  "interpolate": true,
+  "interpolation_options": {
+    "strike_min": 6000.0,
+    "strike_max": 6050.0,
+    "strike_step": 5.0
+  },
+  "steepness_factor": 0.9
+}
+```
+
+**Response:**
+```json
+{
+  "predictions": [0.780, 0.752, 0.723, 0.692, 0.660, 0.625, 0.588, 0.550, 0.510, 0.470, 0.430],
+  "strikes": [6000.0, 6005.0, 6010.0, 6015.0, 6020.0, 6025.0, 6030.0, 6035.0, 6040.0, 6045.0, 6050.0],
+  "contract_type": "CALL",
+  "model_version": "1.0.0",
+  "count": 11,
+  "smoothed": true,
+  "interpolated": true
+}
+```
+
+**Interpolation Options:**
+- `strike_min` (float, required): Minimum strike price for interpolation range
+- `strike_max` (float, required): Maximum strike price for interpolation range (must be > strike_min)
+- `strike_step` (float, optional): Step size between strikes (default: 5.0)
+
+**Notes:**
+- When `interpolate=true`, the response includes both `predictions` and `strikes` arrays
+- Interpolation automatically applies smoothing (curve fitting)
+- The `steepness_factor` controls how steep the delta curve is:
+  - Values < 1.0 create gentler curves
+  - Values > 1.0 create steeper curves
+  - Default is 0.9 for realistic option delta behavior
+- You cannot use `smooth=true` and `interpolate=true` together (interpolation includes smoothing)
+
 **Validation:**
 - All numeric fields must satisfy the constraints above
 - Batch predictions are limited to 1000 items per request
 - Empty batch requests are rejected
+- `interpolation_options` is required when `interpolate=true`
+- `interpolation_options` cannot be provided when `interpolate=false`
 
 **Note:** The endpoint naming convention (`predict_delta` vs `predict_deltas`) is designed to accommodate future Greek predictions (e.g., `predict_gamma`, `predict_vega`, `predict_theta`).
 
@@ -268,6 +366,50 @@ response = requests.post(f"{BASE_URL}/predict_deltas", json=batch_request)
 result = response.json()
 print(f"Predicted deltas: {result['predictions']}")
 print(f"Count: {result['count']}")
+
+# Batch prediction with smoothing
+smoothed_request = {
+    "contract_type": "CALL",
+    "features": [
+        {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+        {"dte": 3, "moneyness": 0.992, "mark": 42.0, "strike": 6010.0,
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+        {"dte": 3, "moneyness": 0.993, "mark": 39.1, "strike": 6015.0,
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    ],
+    "smooth": True,
+    "steepness_factor": 0.9
+}
+
+response = requests.post(f"{BASE_URL}/predict_deltas", json=smoothed_request)
+result = response.json()
+print(f"Smoothed deltas: {result['predictions']}")
+print(f"Smoothed: {result['smoothed']}")
+
+# Batch prediction with interpolation
+interpolated_request = {
+    "contract_type": "CALL",
+    "features": [
+        {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+        {"dte": 3, "moneyness": 0.993, "mark": 36.1, "strike": 6020.0,
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+    ],
+    "interpolate": True,
+    "interpolation_options": {
+        "strike_min": 6000.0,
+        "strike_max": 6050.0,
+        "strike_step": 5.0
+    },
+    "steepness_factor": 0.9
+}
+
+response = requests.post(f"{BASE_URL}/predict_deltas", json=interpolated_request)
+result = response.json()
+print(f"Interpolated deltas: {result['predictions']}")
+print(f"Strikes: {result['strikes']}")
+print(f"Interpolated: {result['interpolated']}")
 ```
 
 ## Model Loading
