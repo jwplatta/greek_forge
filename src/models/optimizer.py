@@ -121,7 +121,7 @@ def optimize_with_pruning(
             y_fold_val = y_train.iloc[val_idx]
 
             model.fit(X_fold_train, y_fold_train)
-            score = -model.score(X_fold_val, y_fold_val)  # Negative R²
+            score = -model.score(X_fold_val, y_fold_val)
 
             scores.append(score)
 
