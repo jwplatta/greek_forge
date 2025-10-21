@@ -34,7 +34,8 @@ models/
 # Jupyter Notebook
 .ipynb_checkpoints
 notebooks/*.ipynb
-!notebooks/PredictingDeltas.ipynb
+!notebooks/PredictingCallDeltas.ipynb
+!notebooks/PredictingPutDeltas.ipynb
 
 # pytest
 .pytest_cache/
