@@ -46,6 +46,7 @@ htmlcov/
 logs/
 reports/
 *.log
+/tmp
 
 # OS
 .DS_Store
