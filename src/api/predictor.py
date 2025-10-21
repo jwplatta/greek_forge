@@ -68,8 +68,7 @@ class Predictor:
                     'strike': float,
                     'underlying_price': float,
                     'vix9d': float,
-                    'vvix': float,
-                    'skew': float
+                    'vvix': float
                 }
 
         Returns:
@@ -156,7 +155,6 @@ if __name__ == "__main__":
             "underlying_price": 6060.0,
             "vix9d": 15.0,
             "vvix": 90.0,
-            "skew": 140.0,
         }
 
         delta = predictor.predict_single(input_data)

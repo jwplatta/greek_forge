@@ -20,7 +20,7 @@ class TestOptionPreprocessor:
         preprocessor = OptionPreprocessor()
 
         assert preprocessor.is_fitted is False
-        assert len(preprocessor.feature_columns) == 8
+        assert len(preprocessor.feature_columns) == 7
 
     def test_preprocessor_fit(self):
         """Test that preprocessor can be fitted."""
@@ -61,7 +61,6 @@ class TestOptionPreprocessor:
             "underlying_price",
             "vix9d",
             "vvix",
-            "skew",
         ]
 
         assert list(transformed_df.columns) == expected_features

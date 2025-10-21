@@ -24,7 +24,6 @@ class OptionPreprocessor:
             "underlying_price",
             "vix9d",
             "vvix",
-            "skew",
         ]
         self.is_fitted = False
 

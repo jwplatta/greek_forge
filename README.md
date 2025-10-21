@@ -155,8 +155,7 @@ curl -X POST "http://localhost:8000/predict_delta" \
       "strike": 6000.0,
       "underlying_price": 6060.0,
       "vix9d": 15.0,
-      "vvix": 90.0,
-      "skew": 140.0
+      "vvix": 90.0
     }
   }'
 ```
@@ -185,7 +184,6 @@ input_data = {
     "underlying_price": 6060.0,
     "vix9d": 15.0,
     "vvix": 90.0,
-    "skew": 140.0,
 }
 delta = predictor.predict_single(input_data)
 print(f"Predicted delta: {delta:.4f}")

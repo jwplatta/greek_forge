@@ -27,7 +27,7 @@ def fetch_option_samples(
     """
     Fetch option samples from the database.
 
-    This loads SPXW options with associated volatility indicators (VIX, VIX9D, VVIX, SKEW).
+    This loads SPXW options with associated volatility indicators (VIX, VIX9D, VVIX).
     The query filters for:
     - Sample data (sample = true)
     - SPXW root symbol
@@ -50,7 +50,7 @@ def fetch_option_samples(
             - strike: option strike price
             - contract_type: 'CALL' or 'PUT'
             - valid_time: timestamp
-            - vix, vix9d, vvix, skew: volatility indicators
+            - vix, vix9d, vvix: volatility indicators
     """
     query = load_option_samples_query()
 
@@ -76,7 +76,6 @@ def fetch_option_samples(
         "vix",
         "vix9d",
         "vvix",
-        "skew",
     ]
     for col in numeric_cols:
         if col in df.columns:

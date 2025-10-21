@@ -100,7 +100,6 @@ class TestPredictDeltaEndpoint:
                 "underlying_price": 6060.0,
                 "vix9d": 15.0,
                 "vvix": 90.0,
-                "skew": 140.0,
             },
             "version": "latest",
         }
@@ -126,7 +125,6 @@ class TestPredictDeltaEndpoint:
                 "underlying_price": 6060.0,
                 "vix9d": 15.0,
                 "vvix": 90.0,
-                "skew": 140.0,
             },
         }
 
@@ -168,7 +166,6 @@ class TestPredictDeltasEndpoint:
                     "underlying_price": 6060.0,
                     "vix9d": 15.0,
                     "vvix": 90.0,
-                    "skew": 140.0,
                 },
                 {
                     "dte": 10,
@@ -178,7 +175,6 @@ class TestPredictDeltasEndpoint:
                     "underlying_price": 6300.0,
                     "vix9d": 18.0,
                     "vvix": 95.0,
-                    "skew": 145.0,
                 },
                 {
                     "dte": 15,
@@ -188,7 +184,6 @@ class TestPredictDeltasEndpoint:
                     "underlying_price": 5880.0,
                     "vix9d": 12.0,
                     "vvix": 85.0,
-                    "skew": 135.0,
                 },
             ],
             "version": "latest",
@@ -223,7 +218,6 @@ class TestPredictDeltasEndpoint:
                 "underlying_price": 6060.0,
                 "vix9d": 15.0,
                 "vvix": 90.0,
-                "skew": 140.0,
             }
         ] * 1001
 
@@ -245,7 +239,6 @@ class TestPredictDeltasEndpoint:
                     "underlying_price": 6060.0,
                     "vix9d": 15.0,
                     "vvix": 90.0,
-                    "skew": 140.0,
                 }
             ],
         }

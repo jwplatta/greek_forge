@@ -17,7 +17,6 @@ class OptionFeatures(BaseModel):
     underlying_price: float = Field(..., gt=0, description="Underlying asset price")
     vix9d: float = Field(..., ge=0, description="9-day VIX")
     vvix: float = Field(..., ge=0, description="VVIX volatility index")
-    skew: float = Field(..., description="Volatility skew")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -29,7 +28,6 @@ class OptionFeatures(BaseModel):
                 "underlying_price": 6060.0,
                 "vix9d": 15.0,
                 "vvix": 90.0,
-                "skew": 140.0,
             }
         }
     )
@@ -56,7 +54,6 @@ class SinglePredictionRequest(BaseModel):
                     "underlying_price": 6060.0,
                     "vix9d": 15.0,
                     "vvix": 90.0,
-                    "skew": 140.0,
                 },
                 "version": "latest",
             }
@@ -156,7 +153,6 @@ class BatchPredictionRequest(BaseModel):
                         "underlying_price": 6060.0,
                         "vix9d": 15.0,
                         "vvix": 90.0,
-                        "skew": 140.0,
                     },
                     {
                         "dte": 10,
@@ -166,7 +162,6 @@ class BatchPredictionRequest(BaseModel):
                         "underlying_price": 6300.0,
                         "vix9d": 18.0,
                         "vvix": 95.0,
-                        "skew": 145.0,
                     },
                 ],
                 "version": "latest",

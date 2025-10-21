@@ -26,8 +26,7 @@ SELECT
   samples.*,
   vix.close AS vix,
   vix9d.close AS vix9d,
-  vvix.close AS vvix,
-  skew.close AS skew
+  vvix.close AS vvix
 FROM samples
 LEFT JOIN LATERAL (
   SELECT close, valid_time
@@ -53,13 +52,3 @@ LEFT JOIN LATERAL (
   ORDER BY valid_time DESC
   LIMIT 1
 ) vvix ON true
-LEFT JOIN LATERAL (
-  SELECT
-      close,
-      valid_time
-  FROM price_history
-  WHERE symbol = '$SKEW'
-  AND valid_time <= samples.valid_time
-  ORDER BY valid_time DESC
-  LIMIT 1
-) skew ON true

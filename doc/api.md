@@ -78,8 +78,7 @@ Predict option delta for a single option.
     "strike": 6000.0,
     "underlying_price": 6060.0,
     "vix9d": 15.0,
-    "vvix": 90.0,
-    "skew": 140.0
+    "vvix": 90.0
   },
   "version": "latest"
 }
@@ -118,8 +117,7 @@ This endpoint supports optional **curve smoothing** and **delta interpolation** 
       "strike": 6000.0,
       "underlying_price": 6060.0,
       "vix9d": 15.0,
-      "vvix": 90.0,
-      "skew": 140.0
+      "vvix": 90.0
     },
     {
       "dte": 10,
@@ -128,8 +126,7 @@ This endpoint supports optional **curve smoothing** and **delta interpolation** 
       "strike": 6000.0,
       "underlying_price": 6300.0,
       "vix9d": 18.0,
-      "vvix": 95.0,
-      "skew": 145.0
+      "vvix": 95.0
     }
   ],
   "version": "latest"
@@ -166,7 +163,6 @@ This endpoint supports optional **curve smoothing** and **delta interpolation** 
 - `underlying_price` (float): Underlying asset price (> 0)
 - `vix9d` (float): 9-day VIX (>= 0)
 - `vvix` (float): VVIX volatility index (>= 0)
-- `skew` (float): Volatility skew
 
 #### Smoothing Only
 
@@ -178,11 +174,11 @@ Apply logistic curve smoothing to reduce noise in predictions while keeping the 
   "contract_type": "CALL",
   "features": [
     {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     {"dte": 3, "moneyness": 0.992, "mark": 42.0, "strike": 6010.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     {"dte": 3, "moneyness": 0.993, "mark": 39.1, "strike": 6015.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22}
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31}
   ],
   "smooth": true,
   "steepness_factor": 0.9
@@ -212,11 +208,11 @@ Interpolate deltas for missing strikes within a specified range:
   "contract_type": "CALL",
   "features": [
     {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     {"dte": 3, "moneyness": 0.993, "mark": 36.1, "strike": 6020.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     {"dte": 3, "moneyness": 0.994, "mark": 32.9, "strike": 6025.0,
-     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22}
+     "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31}
   ],
   "interpolate": true,
   "interpolation_options": {
@@ -343,7 +339,6 @@ single_request = {
         "underlying_price": 6060.0,
         "vix9d": 15.0,
         "vvix": 90.0,
-        "skew": 140.0,
     }
 }
 
@@ -356,9 +351,9 @@ batch_request = {
     "contract_type": "PUT",
     "features": [
         {"dte": 5, "moneyness": 1.01, "mark": 8.5, "strike": 6000.0,
-         "underlying_price": 5940.0, "vix9d": 16.0, "vvix": 92.0, "skew": 138.0},
+         "underlying_price": 5940.0, "vix9d": 16.0, "vvix": 92.0},
         {"dte": 10, "moneyness": 1.05, "mark": 12.0, "strike": 6000.0,
-         "underlying_price": 5714.0, "vix9d": 20.0, "vvix": 98.0, "skew": 150.0},
+         "underlying_price": 5714.0, "vix9d": 20.0, "vvix": 98.0},
     ]
 }
 
@@ -372,11 +367,11 @@ smoothed_request = {
     "contract_type": "CALL",
     "features": [
         {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
-         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
         {"dte": 3, "moneyness": 0.992, "mark": 42.0, "strike": 6010.0,
-         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
         {"dte": 3, "moneyness": 0.993, "mark": 39.1, "strike": 6015.0,
-         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     ],
     "smooth": True,
     "steepness_factor": 0.9
@@ -392,9 +387,9 @@ interpolated_request = {
     "contract_type": "CALL",
     "features": [
         {"dte": 3, "moneyness": 0.991, "mark": 45.5, "strike": 6005.0,
-         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
         {"dte": 3, "moneyness": 0.993, "mark": 36.1, "strike": 6020.0,
-         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31, "skew": 141.22},
+         "underlying_price": 6061.48, "vix9d": 15.38, "vvix": 90.31},
     ],
     "interpolate": True,
     "interpolation_options": {
