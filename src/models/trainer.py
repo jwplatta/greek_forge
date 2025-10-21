@@ -11,6 +11,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger()
 
+
 class DeltaPredictor:
     """
     Wrapper for HistGradientBoostingRegressor with defaults tuned for delta prediction.
