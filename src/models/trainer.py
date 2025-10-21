@@ -7,6 +7,9 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import cross_val_score
 import numpy as np
 
+from src.utils.logger import get_logger
+
+logger = get_logger()
 
 class DeltaPredictor:
     """
@@ -112,7 +115,6 @@ def train_with_cv(
 
     predictor = DeltaPredictor(**params)
 
-    print(f"Running {cv}-fold cross-validation...")
     cv_scores = cross_val_score(
         predictor.model, X_train, y_train, cv=cv, scoring=scoring, n_jobs=-1
     )
@@ -127,10 +129,10 @@ def train_with_cv(
         "metric": scoring.replace("neg_", ""),
     }
 
-    print(f"{scoring.replace('neg_', '').upper()} scores: {cv_scores}")
-    print(f"Mean: {cv_results['mean']:.4f} (+/- {cv_results['std']:.4f})")
+    logger.info(f"{scoring.replace('neg_', '').upper()} scores: {cv_scores}")
+    logger.info(f"Mean: {cv_results['mean']:.4f} (+/- {cv_results['std']:.4f})")
+    logger.info("\nTraining on full training set...")
 
-    print("\nTraining on full training set...")
     predictor.fit(X_train, y_train)
 
     return predictor, cv_results
@@ -140,16 +142,16 @@ if __name__ == "__main__":
     from src.data.loader import fetch_call_samples
     from src.data.preprocessor import preprocess_training_data
 
-    print("Loading and preprocessing data...")
+    logger.info("Loading and preprocessing data...")
     df = fetch_call_samples()
     X_train, X_test, y_train, y_test, preprocessor = preprocess_training_data(df)
 
-    print("\nTraining model with cross-validation...")
+    logger.info("\nTraining model with cross-validation...")
     model, cv_results = train_with_cv(X_train, y_train)
 
-    print("\nMaking predictions on test set...")
+    logger.info("\nMaking predictions on test set...")
     y_pred = model.predict(X_test)
 
-    print("\nFirst 10 predictions:")
+    logger.info("\nFirst 10 predictions:")
     for i in range(min(10, len(y_pred))):
-        print(f"  Actual: {y_test.iloc[i]:.4f}, Predicted: {y_pred[i]:.4f}")
+        logger.info(f"  Actual: {y_test.iloc[i]:.4f}, Predicted: {y_pred[i]:.4f}")
