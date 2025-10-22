@@ -294,8 +294,16 @@ async def predict_deltas(request: BatchPredictionRequest):
         predictor = _get_predictor(request.contract_type, request.version)
         features_list = [f.model_dump() for f in request.features]
         deltas = predictor.predict_batch(features_list)
+        strikes = [f["strike"] for f in features_list]
 
-        strikes = np.array([f["strike"] for f in features_list])
+        deltas = validate_and_adjust_deltas(
+            deltas=deltas,
+            strikes=strikes,
+            contract_type=request.contract_type,
+            enforce_monotonic=True
+        )
+
+        strikes_array = np.array(strikes)
         deltas_array = np.array(deltas)
 
         smoothed = False
@@ -310,7 +318,7 @@ async def predict_deltas(request: BatchPredictionRequest):
                 )
 
             interpolated_strikes, interpolated_deltas = interpolate_deltas(
-                strikes=strikes,
+                strikes=strikes_array,
                 deltas=deltas_array,
                 strike_min=request.interpolation_options.strike_min,
                 strike_max=request.interpolation_options.strike_max,
@@ -325,22 +333,13 @@ async def predict_deltas(request: BatchPredictionRequest):
 
         elif request.smooth:
             deltas_array = smooth_deltas(
-                strikes=strikes,
+                strikes=strikes_array,
                 deltas=deltas_array,
                 steepness_factor=request.steepness_factor,
             )
             smoothed = True
 
-        # Apply validation and adjustment to ensure theoretical constraints
-        final_strikes = result_strikes if result_strikes is not None else strikes.tolist()
-        deltas_list = validate_and_adjust_deltas(
-            deltas=deltas_array.tolist(),
-            strikes=final_strikes,
-            contract_type=request.contract_type,
-            enforce_monotonic=True
-        )
-
-        assert len(deltas_list) == len(final_strikes) and len(deltas_list) == len(deltas_array)
+        deltas_list = deltas_array.tolist()
 
         return BatchPredictionResponse(
             predictions=deltas_list,
