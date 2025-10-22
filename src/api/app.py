@@ -22,6 +22,7 @@ from src.utils.constants import (
     VALID_CONTRACT_TYPES,
 )
 from src.utils.curve_fitting import interpolate_deltas, smooth_deltas
+from src.utils.delta_validation import validate_and_adjust_deltas
 from src.utils.logger import get_logger
 from src.utils.model_io import get_latest_version, list_model_versions, load_model
 
@@ -330,12 +331,23 @@ async def predict_deltas(request: BatchPredictionRequest):
             )
             smoothed = True
 
+        # Apply validation and adjustment to ensure theoretical constraints
+        final_strikes = result_strikes if result_strikes is not None else strikes.tolist()
+        deltas_list = validate_and_adjust_deltas(
+            deltas=deltas_array.tolist(),
+            strikes=final_strikes,
+            contract_type=request.contract_type,
+            enforce_monotonic=True
+        )
+
+        assert len(deltas_list) == len(final_strikes) and len(deltas_list) == len(deltas_array)
+
         return BatchPredictionResponse(
-            predictions=deltas_array.tolist(),
+            predictions=deltas_list,
             strikes=result_strikes,
             contract_type=request.contract_type,
             model_version=predictor.version,
-            count=len(deltas_array),
+            count=len(deltas_list),
             smoothed=smoothed,
             interpolated=interpolated,
         )
