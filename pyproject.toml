@@ -20,7 +20,7 @@ dev = [
     "pytest>=7.4.0",
     "jupyter>=1.0.0",
     "matplotlib>=3.0.0",
-    "ipykernel>=6.0.0",
+    "ipykernel>=7.2.0",
 ]
 
 [dependency-groups]
@@ -28,5 +28,5 @@ dev = [
     "httpx>=0.28.1",
     "ruff>=0.14.1",
     "matplotlib>=3.0.0",
-    "ipykernel>=6.0.0",
+    "ipykernel>=7.2.0",
 ]
